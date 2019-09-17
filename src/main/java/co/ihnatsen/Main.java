@@ -1,6 +1,7 @@
 package co.ihnatsen;
 
 import co.ihnatsen.utils.ClassUtils;
+import com.sun.codemodel.JAnnotationUse;
 import com.sun.codemodel.JClass;
 import com.sun.codemodel.JClassAlreadyExistsException;
 import com.sun.codemodel.JCodeModel;
@@ -15,7 +16,9 @@ import com.sun.codemodel.JVar;
 
 import java.io.File;
 import java.io.Serializable;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import static co.ihnatsen.Operations.CREATE;
@@ -46,6 +49,9 @@ import static co.ihnatsen.utils.StringUtils.fieldToJsonName;
 import static co.ihnatsen.utils.StringUtils.generateURI;
 import static com.sun.codemodel.JExpr.invoke;
 import static java.lang.String.format;
+import static java.util.Arrays.asList;
+import static java.util.Collections.emptyList;
+import static java.util.Collections.emptyMap;
 
 public class Main {
 
@@ -73,8 +79,8 @@ public class Main {
                                                         boolean paging) {
         JPackage jp = cm._package("repositories");
         try {
-            JDefinedClass defClass = jp._class(0, format(REPOSITORY,
-                    entity.getEntityName()));
+            JDefinedClass defClass = defineClass(cm, jp, format(REPOSITORY,
+                    entity.getEntityName()), emptyList());
             JClass repositoryClass = getUtilityType(cm, paging ? PAGING_REPOSITORY : JPA_REPOSITORY)
                     .narrow(entity.getEntityClass(), entity.getIdClass());
             defClass._implements(repositoryClass);
@@ -90,9 +96,8 @@ public class Main {
         //TODO: choose packages
         JPackage jp = cm._package("services");
         try {
-            JDefinedClass defClass = jp._class(JMod.PUBLIC, format(SERVICE,
-                    entity.getEntityName()));
-            defClass.annotate(getUtilityType(cm, SERVICE_ANNOTATION));
+            JDefinedClass defClass = defineClass(cm, jp, format(SERVICE,
+                    entity.getEntityName()), asList(new Annotation(SERVICE_ANNOTATION)));
             JFieldVar repository = defClass.field(JMod.PRIVATE, entity.getRepository(),
                     fieldName(entity.getRepository().name()));
             repository.annotate(getUtilityType(cm, AUTOWIRED_ANNOTATION));
@@ -136,9 +141,8 @@ public class Main {
                                             boolean paging) {
         JPackage jp = cm._package("controllers");
         try {
-            JDefinedClass defClass = jp._class(JMod.PUBLIC, format(CONTROLLER, entity.getEntityName()));
-            defClass.annotate(getUtilityType(cm, REST_CONTROLLER_ANNOTATION)).param("value",
-                    generateURI(entity.getEntityName()));
+            JDefinedClass defClass = defineClass(cm, jp, format(CONTROLLER, entity.getEntityName()),
+                    asList(new Annotation(REST_CONTROLLER_ANNOTATION).withValue(generateURI(entity.getEntityName()))));
 
             JMethod getAll = defClass.method(JMod.PUBLIC, getUtilityType(cm, paging ? PAGE : LIST).narrow(entity.getEntityClass()),
                     READ_ALL.getMethod());
@@ -189,9 +193,8 @@ public class Main {
     private static JDefinedClass generateDto(JCodeModel cm, EntityStructure entity) {
         JPackage jp = cm._package("dto");
         try {
-            JDefinedClass defClass = jp._class(JMod.PUBLIC, format(DTO, entity.getEntityName()));
-            defClass.annotate(getUtilityType(cm, DATA_ANNOTATION));
-            defClass.annotate(getUtilityType(cm, ALL_ARGS_CONSTRUCTOR_ANNOTATION));
+            JDefinedClass defClass = defineClass(cm,jp, format(DTO, entity.getEntityName()),
+                    asList(new Annotation(DATA_ANNOTATION), new Annotation(ALL_ARGS_CONSTRUCTOR_ANNOTATION)));
             entity.getEntityFields().entrySet().forEach(field -> {
                 defClass
                         .field(
@@ -210,5 +213,15 @@ public class Main {
 
     private static Class<?> serializeType(Class<?> clazz) {
         return Serializable.class.isAssignableFrom(clazz) ? clazz : String.class;
+    }
+
+    private static JDefinedClass defineClass(JCodeModel cm, JPackage jp, String className,
+                                             List<Annotation> annotations) throws JClassAlreadyExistsException {
+        JDefinedClass defClass = jp._class(JMod.PUBLIC, className);
+        annotations.forEach(annotation -> {
+            JAnnotationUse annotationUse = defClass.annotate(getUtilityType(cm, annotation.getType()));
+            annotation.values().forEach((key, value) -> annotationUse.param(key, value));
+        });
+        return defClass;
     }
 }
