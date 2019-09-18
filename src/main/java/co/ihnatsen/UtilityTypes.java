@@ -24,7 +24,7 @@ public enum UtilityTypes {
     PUT_MAPPING("org.springframework.web.bind.annotation.PutMapping"),
     REQUEST_BODY("org.springframework.web.bind.annotation.RequestBody");
 
-    private UtilityTypes(String typePackage) {
+    UtilityTypes(String typePackage) {
         this.typePackage = typePackage;
     }
 

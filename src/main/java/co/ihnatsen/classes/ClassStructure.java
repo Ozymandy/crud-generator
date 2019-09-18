@@ -12,7 +12,7 @@ public abstract class ClassStructure {
     private List<Annotation> classAnnotations;
     private List<JClass> implementClasses;
     private String finalPackage;
-    private Map<JClass, String> invocations;
+
     public void init(final JCodeModel cm) {
         JClass j;
     }
