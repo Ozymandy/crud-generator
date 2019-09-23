@@ -3,11 +3,11 @@ package co.ihnatsen.classes;
 import co.ihnatsen.Context;
 import com.sun.codemodel.JType;
 
-public class RefStructure implements ClassStructure2 {
+public class RefClass extends ClassStructure2 {
 
     private final String ref;
 
-    public RefStructure(String ref) {
+    public RefClass(String ref) {
         this.ref = ref;
     }
 

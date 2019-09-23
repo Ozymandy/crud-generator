@@ -1,14 +1,19 @@
 package co.ihnatsen.classes;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import static java.lang.String.format;
 
 public class RepositoryStructure extends CrudStructure {
 
     private final String entityName;
     private ClassStructure2 implement;
+    private List<ClassStructure2> narrowed;
 
     public RepositoryStructure(String entityName) {
-        super("%sRepository", null);
+        super("%sRepository");
+        narrowed = new ArrayList<>();
         this.entityName = entityName;
     }
     @Override
@@ -39,5 +44,10 @@ public class RepositoryStructure extends CrudStructure {
     @Override
     public String className() {
         return format(name, entityName);
+    }
+
+    @Override
+    public void narrow(ClassStructure2 type) {
+        narrowed.add(type);
     }
 }

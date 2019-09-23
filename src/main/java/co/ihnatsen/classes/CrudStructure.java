@@ -3,16 +3,17 @@ package co.ihnatsen.classes;
 import co.ihnatsen.Context;
 import com.sun.codemodel.JType;
 
-public abstract class CrudStructure implements ClassStructure2 {
-
-    protected final String name;
-    protected final Annotation classAnnotation;
+public abstract class CrudStructure extends CreatedClass {
 
     protected CrudStructure(final String name,
                             final Annotation classAnnotation) {
-        this.name = name;
-        this.classAnnotation = classAnnotation;
+        super(name, classAnnotation);
     }
+
+    protected CrudStructure(final String name) {
+        super(name);
+    }
+
     @Override
     public JType init(Context context) {
         return null;
